@@ -5,11 +5,14 @@ import pandas as pd
 
 class Bayes_Classifier:
     def __init__(self, dataset_number=1, model_number=1):
+        self.model_number= model_number
         self.dataset, self.Class_Points = self.data_preprocessing(dataset_number)
         self.prior = self.calculate_prior()
         self.test_split = 0.2
         self.split_data()
-        self.estimate_CCD(model_number)
+        self.means, self.covariances = self.estimate_CCD(model_number)
+        self.loss_matrix = np.array([[0,2,1],[2,0,3],[1,3,0]])
+        self.posteriors = self.estimate_posteriors()
 
     def loadData(self, dataset_number):
         ''' Reads the csv file'''
@@ -48,45 +51,72 @@ class Bayes_Classifier:
         '''
         Estimates the class conditional density, given the model
         '''
-        self.means = self.estimate_means()
+        means = self.estimate_means()
         if model_number == 1:
-            self.covariances = [np.eye(2) for i in range(3)]
+            covariances = [np.eye(2) for i in range(3)]
             
         if model_number == 2:
             sum_sq = np.zeros((1,2))
             l = 0 
             for i in range(3):
                 l += len(self.train_data[i])
-                sum_sq += np.sum(np.square(self.train_data[i]-self.means[i]),axis=0)
-            self.covariances = [np.diagflat(sum_sq/l)]*3
+
+                sum_sq += np.sum(np.square(self.train_data[i]-means[i]),axis=0)
+            covariances = [np.diagflat(sum_sq/l)]*3
         if model_number == 3:
-            self.covariances = []
+            covariances = []
             for i in range(3):
                 sum_sq = np.zeros((1,2))
                 l = len(self.train_data[i])
-                sum_sq = np.sum(np.square(self.train_data[i]-self.means[i]),axis=0)
+                sum_sq = np.sum(np.square(self.train_data[i]-means[i]),axis=0)
                 (sum_sq/l)
-                self.covariances.append(np.diagflat(sum_sq/l))
+                covariances.append(np.diagflat(sum_sq/l))
         if model_number == 4:
             sum_sq = np.zeros((2,2))
             l = 0 
             for i in range(3):
                 l += len(self.train_data[i])
-                normed = (self.train_data[i]-self.means[i])
+                normed = (self.train_data[i]-means[i])
                 sum_sq += (normed.T@normed)
-            self.covariances = [(sum_sq/l)]*3
+            covariances = [(sum_sq/l)]*3
 
         if model_number == 5:
-            self.covariances = []
+            covariances = []
             for i in range(3):
                 l = len(self.train_data[i])
-                normed = (self.train_data[i]-self.means[i])
-
+                normed = (self.train_data[i]-means[i])
                 sum_sq = normed.T@normed
-                self.covariances.append((sum_sq/l))
+                covariances.append((sum_sq/l))
+        return (means,covariances)
+
+    def estimate_posteriors(self):
+        '''Estimating the posterior, we ignore 1/2pi as it is constant'''
+        self.posteriors = []
+        for i in range(3):
+
+            val = self.train_data[i]  
+            log_likelihood =  [np.array([-0.5*(
+                val[k]- self.means[j])@np.linalg.inv(
+                self.covariances[j])@((
+                    val[k]- self.means[j]).T)-0.5*np.log(np.linalg.det(
+            self.covariances[j])) for k in range(len(val))]) for j in range(3)]
+            posterior = np.array([ log_likelihood[j]+np.log(self.prior[j]) for j in range(3)])
+            if self.model_number==1:
+                self.posteriors.append((posterior.T))    
+            else:
+                self.posteriors.append(np.exp(posterior.T))
+        if self.model_number==1:
+            self.bayes = [-self.posteriors[j] for j in range(3)]
+        else:
+            self.bayes = [self.posteriors[j]@self.loss_matrix for j in range(3)]
+        print(1-np.count_nonzero(np.argmin(self.bayes[0],axis=1))/len(self.bayes[0]))
+        print(1-np.count_nonzero(np.argmin(self.bayes[1],axis=1)-1)/len(self.bayes[1]))
+        print(1-np.count_nonzero(np.argmin(self.bayes[2],axis=1)-2)/len(self.bayes[2]))
+        print('\n')
+        
 
 
-        print(self.covariances,'\n')
+
 
 
     def estimate_means(self):
@@ -102,3 +132,6 @@ class Bayes_Classifier:
 if __name__ == '__main__':
     for i in range(1,6):
         b = Bayes_Classifier(1,i)
+    for i in range(1,6):
+        b = Bayes_Classifier(2,i)
+

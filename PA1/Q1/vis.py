@@ -9,7 +9,7 @@ def loadData(dataset):
     print(val.shape)
     return val
 
-val = loadData(2)
+val = loadData(1)
 #np.where(val[2]=0)
 print()
 
