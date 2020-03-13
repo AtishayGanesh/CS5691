@@ -126,10 +126,6 @@ class Bayes_Classifier:
             self.bayes = [-self.posteriors[j] for j in range(class_num)]
         else:
             self.bayes = [self.posteriors[j]@self.loss_matrix for j in range(class_num)]
-        #print("Dataset {} , Model {} : {} Accuracy:{}".format(
-        #    self.dataset_number,self.model_number,txt,accr))
-
-        #print('\n')
 
         if new_data is not None:
             return np.argmin(self.bayes[0],axis=1),(
@@ -140,7 +136,10 @@ class Bayes_Classifier:
                 np.argmin(self.bayes[1],axis=1)-1)+np.count_nonzero(
                 np.argmin(self.bayes[2],axis=1)-2))/(len(
                 self.bayes[0]) +len(self.bayes[1])+len(self.bayes[2]))
-            txt = 'Testing' if test else "Training" 
+        txt = 'Testing' if test else "Training" 
+
+        print("Dataset {} , Model {}, {} Accuracy {}".format(
+           self.dataset_number,self.model_number,txt,accr))
 
         return accr,np.concatenate((np.argmin(
             self.bayes[0],axis=1),np.argmin(
@@ -153,26 +152,7 @@ class Bayes_Classifier:
         mean = ([np.mean(self.train_data[i], axis=0) for i in range(3)])
         return mean
 
-    def display_results(self):
-        train_pred = self.train_pred
-        test_pred = self.test_pred
-        train_act = np.concatenate((np.zeros(len(
-            self.train_data[0])),np.ones(len(
-            self.train_data[1])),2*np.ones(len(self.train_data[2]))))
-        test_act = np.concatenate((np.zeros(len(
-            self.test_data[0])),np.ones(len(
-            self.test_data[1])),2*np.ones(len(self.test_data[2]))))
-        # print(cnf(train_act,train_pred))
-        # print(np.diag(cnf(train_act,train_pred,normalize='true')))
-        # print(np.diag(cnf(train_act,train_pred,normalize='pred')))
-        # print(self.train_accr)
-        # print(cnf(test_act,test_pred))
-
-        # print(np.diag(cnf(test_act,test_pred,normalize='true')))
-        # print(np.diag(cnf(test_act,test_pred,normalize='pred')))
-        # print(self.test_accr)
-        n_pts = 500
-        print(self.min[0],self.min[1],self.max[0],self.max[1])
+    def display_decision_surface(self,n_pts):
         mi = min(self.min[0],self.min[1])
         ma = max(self.max[0],self.max[1])
         x1 = np.linspace(mi, ma,n_pts)
@@ -180,8 +160,6 @@ class Bayes_Classifier:
         x1v,x2v = np.meshgrid(x1,x2)
         op_data,op_levels = self.estimate_posteriors(
             new_data = np.stack((x1v.flatten(),x2v.flatten()),axis=-1 ))
-        
-
         cs = plt.contourf(x1,x2,op_data.reshape(n_pts,n_pts),2)
         X1 = np.split(self.train_data[0],2,axis=1)
         X2 = np.split(self.train_data[1],2,axis=1)
@@ -199,29 +177,49 @@ class Bayes_Classifier:
         plt.xlim((self.min[0],self.max[0]))
         plt.ylim((self.min[1],self.max[1]))
         plt.show()
-        print(op_levels.shape)
+        return op_levels,x1,x2
+
+    def display_contour_curves(self,op_levels,n_pts,x1,x2):
 
         plt.contour(x1,x2,op_levels[0].reshape(n_pts,n_pts),4)
         plt.contour(x1,x2,op_levels[1].reshape(n_pts,n_pts),4)
         plt.contour(x1,x2,op_levels[2].reshape(n_pts,n_pts),4)
         plt.title("Constant Density Curves and Eigenvectors")
-        print(self.covariances[2])
 
         w1,v1 = np.linalg.eig((self.covariances[0]))
         w2,v2 = np.linalg.eig((self.covariances[1]))
         w3,v3 = np.linalg.eig((self.covariances[2]))
 
-        means_x = self.means[0][0],self.means[0][0],self.means[1][0],self.means[1][0],self.means[2][0],self.means[2][0]
-        means_y = self.means[0][1],self.means[0][1],self.means[1][1],self.means[1][1],self.means[2][1],self.means[2][1]
+        means_x = (self.means[0][0],self.means[0][0],
+            self.means[1][0],self.means[1][0],self.means[2][0],self.means[2][0])
+        means_y = (self.means[0][1],self.means[0][1],
+            self.means[1][1],self.means[1][1],self.means[2][1],self.means[2][1])
 
         u1 = np.asarray([v1[:,0],v1[:,1]]+[v2[:,0],v2[:,1]]+[v3[:,0],v3[:,1]])
-        print(u1[:,0],u1[:,1])
         plt.quiver(means_x,means_y,u1[:,0],u1[:,1],scale=20,headwidth=2,headlength=4)
         plt.xlabel("X1")
         plt.ylabel("X2")
-
-
         plt.show()
+
+    def display_results(self):
+        train_pred = self.train_pred
+        test_pred = self.test_pred
+        train_act = np.concatenate((np.zeros(len(
+            self.train_data[0])),np.ones(len(
+            self.train_data[1])),2*np.ones(len(self.train_data[2]))))
+        test_act = np.concatenate((np.zeros(len(
+            self.test_data[0])),np.ones(len(
+            self.test_data[1])),2*np.ones(len(self.test_data[2]))))
+        print(cnf(train_act,train_pred))
+        print(cnf(test_act,test_pred))
+
+        n_pts=500
+        op_levels,x1,x2 = self.display_decision_surface(n_pts)
+        self.display_contour_curves(op_levels,n_pts,x1,x2)
+
+        
+
+
 
 
 
@@ -236,10 +234,7 @@ if __name__ == '__main__':
         d2.append(Bayes_Classifier(2,i))
     r1 = np.asarray([s.test_accr for s in d1])
     r2 = np.asarray([s.test_accr for s in d2])
-    b1 = np.argmax(r1)
-    b2 = np.argmax(r2)
-    print(r1,r2)
-    d1[1].display_results()
+    d1[b1].display_results()
     d2[4].display_results()
 
 

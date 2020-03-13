@@ -26,6 +26,9 @@ class PCA():
         bw_pix = np.mean(pix,axis=-1)
         self.mean =  np.mean(bw_pix,axis=0)
         centralized = bw_pix - self.mean
+        bw_img = Image.fromarray(bw_pix)
+        bw_img = bw_img.convert('RGB')
+        bw_img.save("6_bw.jpg")
         return im, bw_pix, centralized
 
 
