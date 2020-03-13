@@ -1,4 +1,4 @@
-Bayes Parameter Estimation <br\>
+Bayes Parameter Estimation <br/>
 
 With sample size = 10, and Dogmatism = 0.1,σ = 1.5994517622894937 <br\>
 With sample size = 100, and Dogmatism = 0.1,σ = 1.8552733506994017 <br\>
