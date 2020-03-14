@@ -11,7 +11,7 @@ def polynomial_regression(data_train,data_test):
 	'''
 	Performs polynomial regression on the training data and evaluates it on the test data
 	'''
-	N = 80 # Size of dataset for training
+	N = 10 # Size of dataset for training
 	data_indices = np.arange(0,80,80//N)[:N]
 	data = data_train[data_indices] # Part of total training data used for regression
 
@@ -53,11 +53,12 @@ def polynomial_regression(data_train,data_test):
 		# Plotting regression output
 		plt.title('Plot of target function and the polynomial fit\n Degree = {}'.format(degrees[d]))
 		plt.plot(x_plot,func(x_plot),'k',label = "Actual function to be fit")
+		plt.plot(data[:,0],data[:,1],'bo', label = 'Data points with noise')
 		plt.plot(x_plot,np.matmul(A_plot[:,:degrees[d]+1],w),label = "Polynomial fit")
 		plt.xlabel(r'x $\rightarrow$')
 		plt.ylabel(r'y $\rightarrow$')
 		plt.ylim([0,4])
-		plt.legend()
+		plt.legend(loc="lower right")
 		plt.grid()
 		#plt.savefig('plots/ten_points_degree_{}.jpg'.format(degrees[d]))
 		#plt.show()
@@ -84,8 +85,8 @@ def polynomial_regression(data_train,data_test):
 			plt.legend()
 			plt.xlabel(r'Target Output $\rightarrow$')
 			plt.ylabel(r'Model Output $\rightarrow$')
-			#plt.savefig('plots/scatter_output_test.jpg')
 			plt.grid()
+			#plt.savefig('plots/scatter_output_test.jpg')
 			plt.show()
 		"""
 
@@ -114,17 +115,17 @@ def polynomial_regression(data_train,data_test):
 	plt.xlabel(r'Degree of polynomial $\rightarrow$')
 	plt.ylabel(r'RMS Error $\rightarrow$')
 	#plt.savefig('plots/eighty_points_rms_error.jpg')
-	plt.show()
+	#plt.show()
 
 	min_test_err_degrees = degrees[np.argmin(test_err)]
 
 	# Varying the training data size
 	plt.clf()
-	N_list = [20,40,60,80]
+	N_list = [10,20,40,60,80]
 	A_train = np.ones((80,10)) # Matrix for training
 	A_test = np.ones((20,10)) # Matrix for testing
-	test_err = np.zeros(4)
-	train_err = np.zeros(4)
+	test_err = np.zeros(5)
+	train_err = np.zeros(5)
 
 	# Generating the A matrix
 	for i in range(0,10):
@@ -134,10 +135,9 @@ def polynomial_regression(data_train,data_test):
 	# Vary degree of polynomial from 1 to 9
 	for d in range(4):
 		plt.title("Polynomials of degree {} fit for varying training data sizes".format(degrees[d]))
-		plt.plot(data[:,0],y_fit[:,d],label = "Data samples = 10")
 		# Change the data set size
-		for n in range(4):
-			data_indices = np.arange(0,80,80//N_list[n])[:N_list[n]]
+		for n in range(5):
+			data_indices = np.arange(0,80,80/N_list[n])[:N_list[n]].astype(np.int)
 			data_n = data_train[data_indices] # Part of total training data used for regression
 			A_train_n = A_train[data_indices,:degrees[d]+1] # Part of A matrix required
 			w = np.matmul(np.matmul(np.linalg.inv(np.matmul(A_train_n.T,A_train_n)),A_train_n.T),data_n[:,1]) # Least Squares Solution
@@ -147,14 +147,15 @@ def polynomial_regression(data_train,data_test):
 			test_err[n] = np.linalg.norm(data_test[:,1] - np.matmul(A_test[:,:degrees[d]+1],w))/(20**0.5)
 			train_err[n] = np.linalg.norm(data_n[:,1] - y_fit_n)/(N_list[n]**0.5)
 
-			plt.plot(data_n[:,0],y_fit_n, label = "Data samples = {}".format(N_list[n]))
+			plt.plot(x_plot,np.matmul(A_plot[:,:degrees[d]+1],w), label = "Data samples = {}".format(N_list[n]))
 		plt.plot(x_plot,func(x_plot),'k',label = "Actual function to be fit")
 		plt.legend(loc='lower right')
 		plt.xlabel(r'x $\rightarrow$')
 		plt.ylabel(r'y $\rightarrow$')
 		plt.grid()
-		#plt.savefig('plots/fit_varying_data_size_deg_{}'.format(degrees[d]))
-		#plt.show()
+		plt.ylim([0,5])
+		plt.savefig('plots/fit_varying_data_size_deg_{}'.format(degrees[d]))
+		plt.show()
 
 		"""
 		plt.title("Variation of RMS Error with different training data sizes for polynomial of degree {}".format(N_list[n]))
