@@ -28,6 +28,7 @@ def polynomial_regression(data_train,data_test):
 
 	# Range of x values to plot the function for
 	x_plot = np.linspace(0.001,1,99)
+	y_plot = func(x_plot)
 
 	# Generating the A matrix
 	for i in range(0,10):
@@ -44,6 +45,8 @@ def polynomial_regression(data_train,data_test):
 
 		# Finding errors
 		y_test = np.matmul(A_test[:,:degrees[d]+1],w) # Output of model for test data
+
+		# RMS Error
 		test_err[d] = np.linalg.norm(data_test[:,1] - y_test)/(20**0.5)
 		train_err[d] = np.linalg.norm(data[:,1] - y_fit[:,d])/(N**0.5)
 
@@ -60,23 +63,28 @@ def polynomial_regression(data_train,data_test):
 		#plt.show()
 
 		# Following code is for the scatter plot of model output vs target output for the best performing model
+		
 		"""
 		if d == 1: # Degree = 3
 			plt.clf()
 			plt.title('Plot of model output vs target output for training data')
 			plt.plot(data[:,1],y_fit[:,d],'ro')
+			plt.plot(y_plot,y_plot,'r', label = 'y=x')
+			plt.legend()
 			plt.xlabel(r'Target Output $\rightarrow$')
 			plt.ylabel(r'Model Output $\rightarrow$')
 			plt.grid()
-			plt.savefig('plots/scatter_output_training.jpg')
+			#plt.savefig('plots/scatter_output_training.jpg')
 			plt.show()
 
 			plt.clf
 			plt.title('Plot of model output vs target output for test data')
 			plt.plot(data_test[:,1],y_test,'bo')
+			plt.plot(y_plot,y_plot,'r',label = 'y=x')
+			plt.legend()
 			plt.xlabel(r'Target Output $\rightarrow$')
 			plt.ylabel(r'Model Output $\rightarrow$')
-			plt.savefig('plots/scatter_output_test.jpg')
+			#plt.savefig('plots/scatter_output_test.jpg')
 			plt.grid()
 			plt.show()
 		"""
@@ -97,6 +105,7 @@ def polynomial_regression(data_train,data_test):
 	#plt.show()
 
 	# Plotting the variation of error with degree of polynomial
+	plt.cla()
 	plt.title('Plot of training and test RMS errors with degree of polynomial fit')
 	plt.plot(degrees,test_err,'r', label = 'Test Error')
 	plt.plot(degrees,train_err,'b',label = 'Training Error')
@@ -104,8 +113,8 @@ def polynomial_regression(data_train,data_test):
 	plt.grid()
 	plt.xlabel(r'Degree of polynomial $\rightarrow$')
 	plt.ylabel(r'RMS Error $\rightarrow$')
-	#plt.savefig('plots/ten_points_rms_error.jpg')
-	#plt.show()
+	#plt.savefig('plots/eighty_points_rms_error.jpg')
+	plt.show()
 
 	min_test_err_degrees = degrees[np.argmin(test_err)]
 
