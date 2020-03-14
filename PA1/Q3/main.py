@@ -41,8 +41,8 @@ def training(alpha):
 		sigma3 = np.diag([10,10,10])
 
 		N = 20 # Number of training data samples from each class
-		x1 = np.random.multivariate_normal(u1,sigma1,N)
-		x2 = np.random.multivariate_normal(u2,sigma2,N)
+		x1 = np.random.multivariate_normal(u2,sigma2,N)
+		x2 = np.random.multivariate_normal(u1,sigma1,N)
 		x3 = np.random.multivariate_normal(u3,sigma3,N)
 		x = np.append(x1,np.append(x2,x3,0),0)
 
@@ -58,7 +58,7 @@ def training(alpha):
 
 		cov = np.cov(x.T) # Common covariance matrix which will be used to shrink the estimated covariance matrices
 
-		#print("Sample means are: {}, {} and {}".format(s_mean1,s_mean2,s_mean3))
+		print("Sample means are: {}, {} and {}".format(s_mean1,s_mean2,s_mean3))
 		#print("Sample covariance matrices are \n {} \n {} \n {}".format(s_cov1,s_cov2,s_cov3))
 
 		# Shrinking the estimated covariance matrices
