@@ -3,25 +3,29 @@ import numpy as np
 import statistics
 import sklearn
 import sklearn.svm
+import csv
 import sklearn.ensemble
+from datetime import datetime
+import argparse
 
-def main(compnames):
-    with open('train_data.p','rb') as fp:
-        train_data = pickle.load(fp)
-    with open('test_data.p','rb') as fp:
-        test_data = pickle.load(fp)
+
+
+def return_data(train_data,test=False):
+    epoch = datetime.utcfromtimestamp(0)
     keys = train_data.keys()
     ratings = []
     avg_remarks =[]
     avg_remarks_accept = []
     left = []
     comp = []
+    date = []
     ct0= 0
     for k in keys:
         ratings.append(statistics.mean(train_data[k]['rating']))
         company_name = np.zeros(len(compnames))
         company_name[compnames.index(train_data[k]['comp'])] = 1.0
         comp.append(company_name)
+        date.append((train_data[k]['lastdate'] - epoch).total_seconds())
         if len(train_data[k]['remarks']) ==0:
             #average length is 89.14, so for those who dont have any comments, just putting average length
             avg_remarks.append(0)
@@ -31,9 +35,10 @@ def main(compnames):
             avg_remarks_accept.append(statistics.mean([train_data[k]['remarks'][j][-1] for j in train_data[k]['remarks'].keys()]))
 
             avg_remarks.append(statistics.mean([train_data[k]['remarks'][j][0] for j in train_data[k]['remarks'].keys()]))
-
-        left.append(train_data[k]['left'])
-    left = np.array(left)
+        if test==False:
+            left.append(train_data[k]['left'])
+    if test==False:
+        left = np.array(left)
     ratings = (np.array(ratings)) 
     ratings = (ratings-np.average(ratings))/np.std(ratings)
 
@@ -43,33 +48,59 @@ def main(compnames):
     avg_remarks_accept = (avg_remarks_accept-np.average(avg_remarks_accept))/np.std(avg_remarks_accept)
     comp =np.array(comp)
 
+    date = np.array(date)
+    date = (date-np.average(date))/np.std(date)
+
     print(np.average(left))
-    x = (np.stack([ratings,avg_remarks,avg_remarks_accept],-1))
+    x = (np.stack([ratings,avg_remarks,avg_remarks_accept,date],-1))
     x = np.concatenate([x,comp],axis=-1)
-    y = left
-    xt = x[726:]
-    yt = y[726:]
-    x_test = x[0:726]
-    y_test = y[0:726]
+    if test== False:
+        return x,left
+    else:
+        return x,keys
+
+def main(compnames,test=False):
+    with open('train_data.p','rb') as fp:
+        train_data = pickle.load(fp)
+    with open('test_data.p','rb') as fp:
+        test_data = pickle.load(fp)
+    xt,yt = return_data(train_data)
+    x_test,emp = return_data(test_data,True)
+
+    if test ==False:
+        x_test = xt[0:726]
+        y_test = yt[0:726]
+        xt = xt[726:]
+        yt = yt[726:]
+
+
     GBC = sklearn.svm.SVC()
-    print(x.shape,y.shape)
-    GBC.fit(xt,yt,sample_weight=(4*left[726:]+np.ones(len(left[726:]))))
+    print(xt.shape,yt.shape)
+    GBC.fit(xt,yt,sample_weight=(4*yt+np.ones(len(yt))))
     y_pred=GBC.predict(x_test)
-    print(sklearn.metrics.confusion_matrix(y_test,y_pred))
-    tn,fp,fn,tp = sklearn.metrics.confusion_matrix(y_test,y_pred).ravel()
-    print(tn)
-    num = 0
-    denom = 0
-    for i in range(len(y_test)):
-        if y_test[i] ==1:
-            if y_pred[i]==1:
-                num +=5
-            denom +=5
-        else:
-            if y_pred[i]==0:
-                num +=1
-            denom +=1
-    print(num/denom)
+    print(y_pred)
+    lz = (list(zip(emp,y_pred)))
+    with open('base1.csv','w',newline='\n') as file:
+        writer = csv.writer(file)
+        writer.writerow(['id','left'])
+        for l in lz:
+            writer.writerow(l)
+    if test ==False:
+        print(sklearn.metrics.confusion_matrix(y_test,y_pred))
+        tn,fp,fn,tp = sklearn.metrics.confusion_matrix(y_test,y_pred).ravel()
+        print(tn)
+        num = 0
+        denom = 0
+        for i in range(len(y_test)):
+            if y_test[i] ==1:
+                if y_pred[i]==1:
+                    num +=5
+                denom +=5
+            else:
+                if y_pred[i]==0:
+                    num +=1
+                denom +=1
+        print(num/denom)
 
 
 
@@ -88,5 +119,5 @@ if __name__ == '__main__':
      'jnvpfmup','vcqsbirc', 'bhqczwkj', 'siexkzzo', 'fjslutlg', 'ylpksopb',
      'dmgwoqhz','bnivzbfi', 'jblrepyr', 'vwcdylha', 'yodaczsb', 'zptfoxyq','spfcrgea']
 
-    main(compnames)    
+    main(compnames,test = True)    
 
