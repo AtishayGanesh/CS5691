@@ -5,9 +5,9 @@ import sklearn
 import sklearn.svm
 import csv
 import sklearn.ensemble
+import sklearn.naive_bayes
 from datetime import datetime
 import argparse
-
 
 
 def return_data(train_data,test=False):
@@ -16,23 +16,29 @@ def return_data(train_data,test=False):
     ratings = []
     avg_remarks =[]
     avg_remarks_accept = []
+    std_remarks =[]
+    std_ratings =[]
     left = []
     comp = []
     date = []
     ct0= 0
     for k in keys:
         ratings.append(statistics.mean(train_data[k]['rating']))
+        std_ratings.append(statistics.pstdev(train_data[k]['rating']))
         company_name = np.zeros(len(compnames))
         company_name[compnames.index(train_data[k]['comp'])] = 1.0
-        comp.append(company_name)
+        #comp.append(company_name)
+        comp.append(compnames.index(train_data[k]['comp']))
         date.append((train_data[k]['lastdate'] - epoch).total_seconds())
         if len(train_data[k]['remarks']) ==0:
             #average length is 89.14, so for those who dont have any comments, just putting average length
-            avg_remarks.append(0)
+            avg_remarks.append(89.14)
             avg_remarks_accept.append(1)
+            std_remarks.append(0)
             ct0 +=1
         else:
             avg_remarks_accept.append(statistics.mean([train_data[k]['remarks'][j][-1] for j in train_data[k]['remarks'].keys()]))
+            std_remarks.append(statistics.pstdev([train_data[k]['remarks'][j][-1] for j in train_data[k]['remarks'].keys()]))
 
             avg_remarks.append(statistics.mean([train_data[k]['remarks'][j][0] for j in train_data[k]['remarks'].keys()]))
         if test==False:
@@ -41,19 +47,22 @@ def return_data(train_data,test=False):
         left = np.array(left)
     ratings = (np.array(ratings)) 
     ratings = (ratings-np.average(ratings))/np.std(ratings)
-
+    std_ratings = np.array(ratings)
+    std_ratings = (std_ratings-np.average(std_ratings))/np.std(std_ratings)
     avg_remarks = np.array(avg_remarks)
     avg_remarks = (avg_remarks-np.average(avg_remarks))/np.std(avg_remarks)
     avg_remarks_accept = np.array(avg_remarks_accept)
     avg_remarks_accept = (avg_remarks_accept-np.average(avg_remarks_accept))/np.std(avg_remarks_accept)
     comp =np.array(comp)
-
+    comp = (comp-np.average(comp))/np.std(comp)
+    std_remarks =np.array(std_remarks)
+    std_remarks = (std_remarks-np.average(std_remarks))/np.std(std_remarks)
     date = np.array(date)
     date = (date-np.average(date))/np.std(date)
 
     print(np.average(left))
-    x = (np.stack([ratings,avg_remarks,avg_remarks_accept,date],-1))
-    x = np.concatenate([x,comp],axis=-1)
+    x = (np.stack([ratings,std_ratings,avg_remarks,avg_remarks_accept,std_remarks,date,comp],-1))
+    #x = np.concatenate([x,comp],axis=-1)
     if test== False:
         return x,left
     else:
@@ -68,13 +77,13 @@ def main(compnames,test=False):
     x_test,emp = return_data(test_data,True)
 
     if test ==False:
-        x_test = xt[0:726]
-        y_test = yt[0:726]
-        xt = xt[726:]
-        yt = yt[726:]
+        x_test = xt[2600:]
+        y_test = yt[2600:]
+        xt = xt[0:2600]
+        yt = yt[0:2600]
 
 
-    GBC = sklearn.svm.SVC()
+    GBC = sklearn.ensemble.GradientBoostingClassifier()
     print(xt.shape,yt.shape)
     GBC.fit(xt,yt,sample_weight=(4*yt+np.ones(len(yt))))
     y_pred=GBC.predict(x_test)
