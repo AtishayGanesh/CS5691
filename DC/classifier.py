@@ -8,12 +8,13 @@ import sklearn.ensemble
 import sklearn.naive_bayes
 from datetime import datetime
 import argparse
-
+from scipy import stats
 
 def return_data(train_data,test=False):
     epoch = datetime.utcfromtimestamp(0)
     keys = train_data.keys()
     ratings = []
+    ratings2 = []
     avg_remarks =[]
     avg_remarks_accept = []
     std_remarks =[]
@@ -22,9 +23,14 @@ def return_data(train_data,test=False):
     comp = []
     date = []
     ct0= 0
+
     for k in keys:
-        ratings.append(statistics.mean(train_data[k]['rating']))
-        std_ratings.append(statistics.pstdev(train_data[k]['rating']))
+        l = train_data[k]['rating']
+
+        ratings.append((statistics.mean(l)))
+        ratings2.append(np.average(np.log(l)))
+
+        std_ratings.append(stats.skew(l))
         company_name = np.zeros(len(compnames))
         company_name[compnames.index(train_data[k]['comp'])] = 1.0
         #comp.append(company_name)
@@ -34,12 +40,11 @@ def return_data(train_data,test=False):
             #average length is 89.14, so for those who dont have any comments, just putting average length
             avg_remarks.append(89.14)
             avg_remarks_accept.append(1)
-            std_remarks.append(0)
+            std_remarks.append(1)
             ct0 +=1
         else:
             avg_remarks_accept.append(statistics.mean([train_data[k]['remarks'][j][-1] for j in train_data[k]['remarks'].keys()]))
-            std_remarks.append(statistics.pstdev([train_data[k]['remarks'][j][-1] for j in train_data[k]['remarks'].keys()]))
-
+            std_remarks.append((statistics.mean([np.abs(np.log(1+train_data[k]['remarks'][j][-1])) for j in train_data[k]['remarks'].keys()])))
             avg_remarks.append(statistics.mean([train_data[k]['remarks'][j][0] for j in train_data[k]['remarks'].keys()]))
         if test==False:
             left.append(train_data[k]['left'])
@@ -47,6 +52,9 @@ def return_data(train_data,test=False):
         left = np.array(left)
     ratings = (np.array(ratings)) 
     ratings = (ratings-np.average(ratings))/np.std(ratings)
+    ratings2 = (np.array(ratings2)) 
+    ratings2 = (ratings2-np.average(ratings2))/np.std(ratings2)
+
     std_ratings = np.array(ratings)
     std_ratings = (std_ratings-np.average(std_ratings))/np.std(std_ratings)
     avg_remarks = np.array(avg_remarks)
@@ -59,9 +67,7 @@ def return_data(train_data,test=False):
     std_remarks = (std_remarks-np.average(std_remarks))/np.std(std_remarks)
     date = np.array(date)
     date = (date-np.average(date))/np.std(date)
-
-    print(np.average(left))
-    x = (np.stack([ratings,std_ratings,avg_remarks,avg_remarks_accept,std_remarks,date,comp],-1))
+    x = (np.stack([ratings,ratings2,std_ratings,avg_remarks,avg_remarks_accept,std_remarks,date,comp],-1))
     #x = np.concatenate([x,comp],axis=-1)
     if test== False:
         return x,left
@@ -89,12 +95,14 @@ def main(compnames,test=False):
     y_pred=GBC.predict(x_test)
     print(y_pred)
     lz = (list(zip(emp,y_pred)))
-    with open('base1.csv','w',newline='\n') as file:
-        writer = csv.writer(file)
-        writer.writerow(['id','left'])
-        for l in lz:
-            writer.writerow(l)
+    if test==True:
+        with open('base1.csv','w',newline='\n') as file:
+            writer = csv.writer(file)
+            writer.writerow(['id','left'])
+            for l in lz:
+                writer.writerow(l)
     if test ==False:
+        print(np.average(y_pred),np.average(y_test))
         print(sklearn.metrics.confusion_matrix(y_test,y_pred))
         tn,fp,fn,tp = sklearn.metrics.confusion_matrix(y_test,y_pred).ravel()
         print(tn)
@@ -127,6 +135,7 @@ if __name__ == '__main__':
      'rujnkvse','pkeebtfe', 'xccmgbjz', 'ojidyfnn', 'ugldwwzf', 'bucyzegb',
      'jnvpfmup','vcqsbirc', 'bhqczwkj', 'siexkzzo', 'fjslutlg', 'ylpksopb',
      'dmgwoqhz','bnivzbfi', 'jblrepyr', 'vwcdylha', 'yodaczsb', 'zptfoxyq','spfcrgea']
-
-    main(compnames,test = True)    
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test',action='store_true',default=False)
+    args = parser.parse_args()
+    main(compnames,test = args.test)
