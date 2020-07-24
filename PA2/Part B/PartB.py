@@ -84,11 +84,11 @@ l_1 = np.array(l_1)
 print("Non marginal 0 support vectors",len(l_0))
 print("Non margina 1 support vectors",len(l_1))
 print("Number of support vectors on marginal hyperplanes",len(q))
-plt.plot(q[:,0],q[:,1],'go')
+
 plt.plot(l_0[:,0],l_0[:,1],'mo')
 plt.plot(l_1[:,0],l_1[:,1],'co')
+plt.plot(q[:,0],q[:,1],'kd')
 
 
-
-plt.legend(["Class 0 non support vectors","Class 1 non support vectors","Decision Boundary","Class 1 Margin","Class 0 Margin","Support vectors on marginal hyperplanes","Class 0 support vectors","CLass 1 support vectors"])
-#plt.show()
+plt.legend(["Class 0 non support vectors","Class 1 non support vectors","Decision Boundary","Class 1 Margin","Class 0 Margin","Class 0 support vectors","CLass 1 support vectors","Support vectors on marginal hyperplanes"])
+plt.show()
