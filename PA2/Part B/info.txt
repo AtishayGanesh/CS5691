@@ -5,8 +5,10 @@ Confusion Matrix
 [[87 21]
  [20 72]]
 Margin is 0.3463709175578497
+Total number of Support Vectors 231
+Non marginal 0 support vectors 114
+Non maginal 1 support vectors 114
 Number of support vectors on marginal hyperplanes 3
-
 k_factor 2
 Training Accuracy with C = 1.0 is   0.865
 Testing Accuracy with C = 1.0 is   0.825
@@ -14,9 +16,10 @@ Confusion Matrix
 [[96 12]
  [23 69]]
 Margin is 0.3138319521934924
-Number of support vectors on marginal hyperplanes 1
-
-
+Total number of Support Vectors 237
+Non marginal 0 support vectors 77
+Non maginal 1 support vectors 157
+Number of support vectors on marginal hyperplanes 3
 k_factor 4
 Training Accuracy with C = 1.0 is   0.86
 Testing Accuracy with C = 1.0 is   0.795
@@ -24,9 +27,10 @@ Confusion Matrix
 [[99  9]
  [32 60]]
 Margin is 0.3075475964448695
-Number of support vectors on marginal hyperplanes 2
-
-
+Total number of Support Vectors 261
+Non marginal 0 support vectors 51
+Non maginal 1 support vectors 207
+Number of support vectors on marginal hyperplanes 3
 k_factor 8
 Training Accuracy with C = 1.0 is   0.81375
 Testing Accuracy with C = 1.0 is   0.795
@@ -34,8 +38,10 @@ Confusion Matrix
 [[107   1]
  [ 40  52]]
 Margin is 0.2969148917937057
-Number of support vectors on marginal hyperplanes 1
-
+Total number of Support Vectors 297
+Non marginal 0 support vectors 32
+Non maginal 1 support vectors 263
+Number of support vectors on marginal hyperplanes 2
 k_factor 16
 Training Accuracy with C = 1.0 is   0.76125
 Testing Accuracy with C = 1.0 is   0.76
@@ -43,4 +49,7 @@ Confusion Matrix
 [[107   1]
  [ 47  45]]
 Margin is 0.29616671118739196
-Number of support vectors on marginal hyperplanes 1
+Total number of Support Vectors 338
+Non marginal 0 support vectors 19
+Non maginal 1 support vectors 316
+Number of support vectors on marginal hyperplanes 3

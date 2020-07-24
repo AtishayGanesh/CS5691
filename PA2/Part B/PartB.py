@@ -20,9 +20,9 @@ X = val[:,0:2]
 y = val[:,-1]
 X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=7)
 inv_k_factor = 1
-if k_factor<1:
-    inv_k_factor = 1/k_factor
-    k_factor = 1
+# if k_factor<1:
+#     inv_k_factor = 1/k_factor
+#     k_factor = 1
 clf  =SVC(C=C,class_weight = {1.0:1*inv_k_factor,0.0:1*k_factor},kernel='linear')
 clf.fit(X_train,y_train)
 
@@ -39,8 +39,8 @@ xv,yv = np.meshgrid(gridx,gridy)
 
 decision_function = clf.predict(np.array(list(zip(xv.flatten(),yv.flatten()))))
 
-X1 = X[np.where(y==0)]
-X2 = X[np.where(y==1)]
+X1 = X_train[np.where(y_train==0)]
+X2 = X_train[np.where(y_train==1)]
 
 
 
@@ -63,12 +63,32 @@ plt.plot(xx, yy, 'k-')
 plt.plot(xx, yy_down, 'k--')
 plt.plot(xx, yy_up, 'c--')
 plt.xlabel('x_1')
-plt.xlabel('x_2')
-a = np.where(abs(clf.dual_coef_[0])<1)
+plt.ylabel('x_2')
+a = np.where((clf.dual_coef_[0]<1) & (clf.dual_coef_[0]>-1*k_factor))
 q = clf.support_vectors_[a]
 print("Margin is",margin)
+nota = np.where(abs((clf.dual_coef_[0])==1 )| (clf.dual_coef_[0]==-1*k_factor))
+support_location_nonmargin = clf.support_[nota]
+loc0 = np.where(y_train==0)[0]
+l_0 = []
+l_1 = []
+for  elem in support_location_nonmargin:
+    if elem in loc0:
+        l_0.append(X_train[elem])
+    else:
+        l_1.append(X_train[elem])
 
+print("Total number of Support Vectors",len(clf.support_))
+l_0 = np.array(l_0)
+l_1 = np.array(l_1)
+print("Non marginal 0 support vectors",len(l_0))
+print("Non margina 1 support vectors",len(l_1))
 print("Number of support vectors on marginal hyperplanes",len(q))
-sv = plt.plot(q[:,0],q[:,1],'go')
-plt.legend(["Class 0","Class 1","Decision Boundary","Class 1 Margin","Class 0 Margin","Support vectors"])
+plt.plot(q[:,0],q[:,1],'go')
+plt.plot(l_0[:,0],l_0[:,1],'mo')
+plt.plot(l_1[:,0],l_1[:,1],'co')
+
+
+
+plt.legend(["Class 0 non support vectors","Class 1 non support vectors","Decision Boundary","Class 1 Margin","Class 0 Margin","Support vectors on marginal hyperplanes","Class 0 support vectors","CLass 1 support vectors"])
 #plt.show()
