@@ -1,0 +1,16 @@
+weight remarks and ratings by support - improved std a lot (use ratio for remarks)
+change default values
+combine ratings and remarks
+use log(date) for weighting or decaying exp
+use one-hot for comps (do it properly - n-1 labels) - improved mean but reduced std
+vary hyper parameters of GBC
+add extra feature unique to a companys
+do augmentation
+print all params once and check
+Check all columns of all files for weird data values
+Consider remark_date when using it
+read PS once
+I used the wrong ratings for supp_ratings
+default value are very imp
+check for all the zeros
+weigh by remark date externally also along with internally
