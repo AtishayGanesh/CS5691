@@ -1,9 +1,6 @@
 # CS5691: PRML Programming Assignment 2 - Part C: Perceptron Based Classifier
 # Roll Numbers: EE17B102 & EE17B155
 
-# read questions again 
-# Optimal hyperplane
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -48,8 +45,8 @@ def perceptron(train_data,test_data,kernel_index,C = 0):
 		flag = 0
 		for i in range(T):
 			if np.sign(np.matmul(Y*alphas,kernel(X,X[i,:],C)))!= Y[i]: # If prediction is wrong
-				alphas[i] += 1 # Update count
-				num_updates += 1
+				alphas[i] += 1 # Update weights
+				num_updates += 1 
 				flag = 1
 				loss+=1
 		err = loss/T # Average loss
@@ -66,7 +63,7 @@ def perceptron(train_data,test_data,kernel_index,C = 0):
 	x_norm = []
 	m = []
 	for i in range(T):
-		x_norm.append(np.linalg.norm(X[i,:]))
+		x_norm.append(np.sqrt(kernel(X[i,:],X[i,:])))#x_norm.append(np.linalg.norm(X[i,:]))
 		m.append(Y[i]*(np.matmul(Y*alphas,kernel(X,X[i,:],C)))/np.matmul(np.matmul(Y*alphas,kernel(X,X)),Y*alphas)**0.5)
 	r = np.array(x_norm).max()
 	rho = np.array(m).min()
